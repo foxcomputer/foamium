@@ -1,0 +1,13 @@
+[package]
+name = "foamium_app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+foamium_net = { path = "../foamium_net" }
+foamium_dom = { path = "../foamium_dom" }
+
+gtk4 = { version = "0.8", package = "gtk4", features = ["v4_10"] }
+libadwaita = { version = "0.6", package = "libadwaita", features = ["v1_4"] }
+env_logger = "0.11"
+log = "0.4"

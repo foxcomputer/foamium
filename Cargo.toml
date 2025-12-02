@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "foamium_app",
+    "foamium_net",
+    "foamium_dom",
+    "foamium_css",
+    "foamium_layout",
+    "foamium_render",
+]
+resolver = "2"
