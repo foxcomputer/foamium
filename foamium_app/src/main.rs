@@ -1,10 +1,9 @@
-use foamium_dom::parse_html;
-use foamium_net::NetworkManager;
 use gtk4::prelude::*;
-use gtk4::{Box as GtkBox, Button, Entry, Label, Orientation, ScrolledWindow};
+use gtk4::{Box as GtkBox, Button, Entry, Orientation, glib};
 use libadwaita as adw;
 use adw::prelude::*;
-use std::cell::RefCell;
+use webkit6::prelude::*;
+use webkit6::WebView;
 use std::rc::Rc;
 
 const APP_ID: &str = "org.foamium.Browser";
@@ -12,8 +11,7 @@ const APP_ID: &str = "org.foamium.Browser";
 fn main() {
     env_logger::init();
     
-    println!("Starting Foamium Engine...");
-
+    // Initialize GTK and WebKit
     let app = adw::Application::builder()
         .application_id(APP_ID)
         .build();
@@ -23,18 +21,17 @@ fn main() {
 }
 
 fn build_ui(app: &adw::Application) {
-    // Create Adwaita window
     let window = adw::ApplicationWindow::builder()
         .application(app)
         .title("Foamium Browser")
-        .default_width(900)
-        .default_height(700)
+        .default_width(1024)
+        .default_height(768)
         .build();
 
-    // Create header bar
+    // Create Header Bar
     let header = adw::HeaderBar::new();
     
-    // Navigation buttons
+    // Navigation Buttons
     let nav_box = GtkBox::new(Orientation::Horizontal, 0);
     nav_box.add_css_class("linked");
     
@@ -45,101 +42,143 @@ fn build_ui(app: &adw::Application) {
     nav_box.append(&back_btn);
     nav_box.append(&forward_btn);
     nav_box.append(&reload_btn);
-    
     header.pack_start(&nav_box);
     
-    // URL Entry
+    // URL Bar
     let url_entry = Entry::new();
-    url_entry.set_placeholder_text(Some("Enter URL..."));
+    url_entry.set_placeholder_text(Some("Search or enter address"));
     url_entry.set_hexpand(true);
-    url_entry.set_text("https://example.com");
+    url_entry.set_input_purpose(gtk4::InputPurpose::Url);
     header.set_title_widget(Some(&url_entry));
-    
-    // Content area (will be updated when loading pages)
-    let content_box = Rc::new(RefCell::new(GtkBox::new(Orientation::Vertical, 12)));
-    content_box.borrow().set_margin_top(12);
-    content_box.borrow().set_margin_bottom(12);
-    content_box.borrow().set_margin_start(12);
-    content_box.borrow().set_margin_end(12);
 
-    // Wrap in scrolled window
-    let scrolled = ScrolledWindow::new();
-    scrolled.set_child(Some(&*content_box.borrow()));
-    scrolled.set_vexpand(true);
+    // New Tab Button
+    let new_tab_btn = Button::from_icon_name("tab-new-symbolic");
+    header.pack_end(&new_tab_btn);
 
-    // Create main container
+    // Tab View and Tab Bar
+    let tab_view = adw::TabView::new();
+    let tab_bar = adw::TabBar::new();
+    tab_bar.set_view(Some(&tab_view));
+
+    // Main Layout
     let main_box = GtkBox::new(Orientation::Vertical, 0);
     main_box.append(&header);
-    main_box.append(&scrolled);
+    main_box.append(&tab_bar);
+    main_box.append(&tab_view);
 
     window.set_content(Some(&main_box));
     
-    // Load initial page
-    let content_box_clone = content_box.clone();
-    load_url("https://example.com", &content_box_clone);
-    
-    // Connect URL entry activation
-    let content_box_clone = content_box.clone();
-    let url_entry_clone = url_entry.clone();
-    url_entry.connect_activate(move |entry| {
-        let url = entry.text().to_string();
-        url_entry_clone.set_text(&url);
-        load_url(&url, &content_box_clone);
+    // Helper to create a new tab
+    let create_tab = {
+        let tab_view = tab_view.clone();
+        Rc::new(move |url: Option<&str>| {
+            let webview = WebView::new();
+            webview.set_hexpand(true);
+            webview.set_vexpand(true);
+            
+            let url_to_load = url.unwrap_or("about:blank");
+            webview.load_uri(url_to_load);
+            
+            let page = tab_view.append(&webview);
+            page.set_title("New Tab");
+            page.set_live_thumbnail(true);
+            
+            // Connect signals for this webview
+            let page_weak = page.downgrade();
+            
+            webview.connect_title_notify(move |wv| {
+                if let (Some(title), Some(page)) = (wv.title(), page_weak.upgrade()) {
+                    page.set_title(&title);
+                }
+            });
+            
+            // Update URL bar when switching to this tab or when URL changes
+            // Note: This is a simplified implementation. In a real app, we'd need to track the active tab more carefully.
+        })
+    };
+
+    // Create initial tab
+    create_tab(None);
+
+    // New Tab Action
+    let create_tab_clone = create_tab.clone();
+    new_tab_btn.connect_clicked(move |_| {
+        create_tab_clone(None);
     });
-    
-    // Connect reload button
-    let content_box_clone = content_box.clone();
-    let url_entry_clone = url_entry.clone();
+
+    // Handle Tab Closing
+    tab_view.connect_close_page(move |view, page| {
+        view.close_page_finish(page, true);
+        glib::Propagation::Proceed
+    });
+
+    // Connect Navigation Buttons to Active Tab
+    let tab_view_clone = tab_view.clone();
+    back_btn.connect_clicked(move |_| {
+        if let Some(page) = tab_view_clone.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                webview.go_back();
+            }
+        }
+    });
+
+    let tab_view_clone = tab_view.clone();
+    forward_btn.connect_clicked(move |_| {
+        if let Some(page) = tab_view_clone.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                webview.go_forward();
+            }
+        }
+    });
+
+    let tab_view_clone = tab_view.clone();
     reload_btn.connect_clicked(move |_| {
-        let url = url_entry_clone.text().to_string();
-        load_url(&url, &content_box_clone);
+        if let Some(page) = tab_view_clone.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                webview.reload();
+            }
+        }
     });
+
+    // URL Bar Enter
+    let tab_view_clone = tab_view.clone();
+    url_entry.connect_activate(move |entry| {
+        let url = entry.text();
+        let url_str = if url.contains("://") {
+            url.to_string()
+        } else {
+            format!("https://{}", url)
+        };
+        
+        if let Some(page) = tab_view_clone.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                webview.load_uri(&url_str);
+            }
+        }
+    });
+
+    // Update URL bar when switching tabs
+    let url_entry_clone = url_entry.clone();
+    tab_view.connect_selected_page_notify(move |view| {
+        if let Some(page) = view.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                if let Some(uri) = webview.uri() {
+                    url_entry_clone.set_text(&uri);
+                } else {
+                    url_entry_clone.set_text("");
+                }
+            }
+        }
+    });
+    
+    // Update URL bar when current tab navigates
+    // This requires a bit more complex signal handling which we'll simplify for now by just updating on switch
+    // Ideally we'd connect to load-changed on every webview and check if it's the active one.
 
     window.present();
-    println!("✓ Adwaita window ready!");
 }
-
-fn load_url(url: &str, content_box: &Rc<RefCell<GtkBox>>) {
-    println!("Loading {}...", url);
-    
-    // Clear existing content
-    while let Some(child) = content_box.borrow().first_child() {
-        content_box.borrow().remove(&child);
-    }
-    
-    // Fetch and parse
-    let net = NetworkManager::new();
-    let html_content = match net.fetch_text(url) {
-        Ok(content) => {
-            println!("✓ Fetched {} bytes", content.len());
-            content
-        },
-        Err(e) => {
-            eprintln!("Failed to fetch URL: {}", e);
-            let error_label = Label::new(Some(&format!("Error loading page: {}", e)));
-            error_label.add_css_class("error");
-            content_box.borrow().append(&error_label);
-            return;
-        }
-    };
-    
-    println!("Parsing HTML...");
-    let dom_nodes = parse_html(&html_content);
-    let text_lines: Vec<String> = dom_nodes
-        .iter()
-        .filter_map(|node| node.text.clone())
-        .collect();
-    
-    println!("✓ Extracted {} text nodes", text_lines.len());
-
-    // Add text content
-    for text in text_lines {
-        let label = Label::new(Some(&text));
-        label.set_wrap(true);
-        label.set_xalign(0.0);
-        label.set_selectable(true);
-        label.add_css_class("body");
-        content_box.borrow().append(&label);
-    }
-}
-
