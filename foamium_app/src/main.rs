@@ -5,6 +5,7 @@ use adw::prelude::*;
 use webkit6::prelude::*;
 use webkit6::WebView;
 use std::rc::Rc;
+use gtk4::gdk;
 
 const APP_ID: &str = "org.foamium.Browser";
 
@@ -176,9 +177,125 @@ fn build_ui(app: &adw::Application) {
         }
     });
     
+    
     // Update URL bar when current tab navigates
     // This requires a bit more complex signal handling which we'll simplify for now by just updating on switch
     // Ideally we'd connect to load-changed on every webview and check if it's the active one.
+
+    // Keyboard Shortcuts
+    let key_controller = gtk4::EventControllerKey::new();
+    
+    // Clone references for keyboard shortcuts
+    let window_kb = window.clone();
+    let tab_view_kb = tab_view.clone();
+    let url_entry_kb = url_entry.clone();
+    let create_tab_kb = create_tab.clone();
+    let back_btn_kb = back_btn.clone();
+    let forward_btn_kb = forward_btn.clone();
+    let reload_btn_kb = reload_btn.clone();
+    
+    key_controller.connect_key_pressed(move |_controller, key, _code, modifiers| {
+        let ctrl = modifiers.contains(gdk::ModifierType::CONTROL_MASK);
+        let alt = modifiers.contains(gdk::ModifierType::ALT_MASK);
+        let shift = modifiers.contains(gdk::ModifierType::SHIFT_MASK);
+        
+        match key {
+            // Ctrl+T: New Tab
+            gdk::Key::t | gdk::Key::T if ctrl && !shift && !alt => {
+                create_tab_kb(None);
+                return glib::Propagation::Stop;
+            }
+            
+            // Ctrl+W: Close Tab
+            gdk::Key::w | gdk::Key::W if ctrl && !shift && !alt => {
+                if tab_view_kb.n_pages() == 1 {
+                    if let Some(app) = window_kb.application() {
+                        app.quit();
+                    }
+                } else {
+                    if let Some(page) = tab_view_kb.selected_page() {
+                        tab_view_kb.close_page(&page);
+                    }
+                }
+                return glib::Propagation::Stop;
+            }
+            
+            // Ctrl+R or F5: Reload
+            gdk::Key::r | gdk::Key::R if ctrl && !shift && !alt => {
+                reload_btn_kb.emit_clicked();
+                return glib::Propagation::Stop;
+            }
+            gdk::Key::F5 if !ctrl && !shift && !alt => {
+                reload_btn_kb.emit_clicked();
+                return glib::Propagation::Stop;
+            }
+            
+            // Alt+Left or Backspace: Back
+            gdk::Key::Left if alt && !ctrl && !shift => {
+                back_btn_kb.emit_clicked();
+                return glib::Propagation::Stop;
+            }
+            gdk::Key::BackSpace if alt && !ctrl && !shift => {
+                back_btn_kb.emit_clicked();
+                return glib::Propagation::Stop;
+            }
+            
+            // Alt+Right: Forward
+            gdk::Key::Right if alt && !ctrl && !shift => {
+                forward_btn_kb.emit_clicked();
+                return glib::Propagation::Stop;
+            }
+            
+            // Ctrl+L: Focus Address Bar
+            gdk::Key::l | gdk::Key::L if ctrl && !shift && !alt => {
+                url_entry_kb.grab_focus();
+                url_entry_kb.select_region(0, -1); // Select all text
+                return glib::Propagation::Stop;
+            }
+            
+            // Ctrl+Tab: Next Tab
+            gdk::Key::Tab if ctrl && !shift && !alt => {
+                let n_pages = tab_view_kb.n_pages();
+                if n_pages > 1 {
+                    if let Some(current_page) = tab_view_kb.selected_page() {
+                        let current_pos = tab_view_kb.page_position(&current_page);
+                        let next_pos = (current_pos + 1) % n_pages;
+                        let next_page = tab_view_kb.nth_page(next_pos);
+                        tab_view_kb.set_selected_page(&next_page);
+                    }
+                }
+                return glib::Propagation::Stop;
+            }
+            
+            // Ctrl+Shift+Tab: Previous Tab
+            gdk::Key::ISO_Left_Tab if ctrl && shift && !alt => {
+                let n_pages = tab_view_kb.n_pages();
+                if n_pages > 1 {
+                    if let Some(current_page) = tab_view_kb.selected_page() {
+                        let current_pos = tab_view_kb.page_position(&current_page);
+                        let prev_pos = if current_pos == 0 { n_pages - 1 } else { current_pos - 1 };
+                        let prev_page = tab_view_kb.nth_page(prev_pos);
+                        tab_view_kb.set_selected_page(&prev_page);
+                    }
+                }
+                return glib::Propagation::Stop;
+            }
+            
+            // Ctrl+Q: Quit
+            gdk::Key::q | gdk::Key::Q if ctrl && !shift && !alt => {
+                if let Some(app) = window_kb.application() {
+                    app.quit();
+                }
+                return glib::Propagation::Stop;
+            }
+            
+            _ => {}
+        }
+        
+        glib::Propagation::Proceed
+    });
+    
+    window.add_controller(key_controller);
 
     window.present();
 }

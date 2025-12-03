@@ -25,14 +25,29 @@ Foamium is in active development. While the core browsing functionality is stabl
 
 **Beta 1.0 Release Date: January 2nd, 2026**
 
-Planned features for Beta 1.0:
+Planned features to be completed before the launch of Beta 1.0:
 - Bookmarks manager
 - Browsing history
 - Download manager
 - Settings and preferences
 - Custom search engines
-- Keyboard shortcuts
 - Privacy and security enhancements
+
+## Keyboard Shortcuts
+
+Foamium supports the following keyboard shortcuts for efficient browsing:
+
+| Shortcut | Action |
+|----------|--------|
+| **Ctrl+T** | Open new tab |
+| **Ctrl+W** | Close current tab |
+| **Ctrl+R** or **F5** | Reload current page |
+| **Alt+Left** or **Alt+Backspace** | Navigate back |
+| **Alt+Right** | Navigate forward |
+| **Ctrl+L** | Focus address bar (and select all text) |
+| **Ctrl+Tab** | Switch to next tab |
+| **Ctrl+Shift+Tab** | Switch to previous tab |
+| **Ctrl+Q** | Quit Foamium |
 
 ## Building from Source
 
