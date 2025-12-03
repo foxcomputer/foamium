@@ -97,7 +97,7 @@ We welcome contributions! Whether it's bug reports, feature requests, or code co
 
 ## License
 
-We use the (MIT License)[LICENSE]. Open source things can be used by everyone!
+We use the [MIT License](LICENSE). Open source things can be used by everyone!
 
 ## Contact
 
