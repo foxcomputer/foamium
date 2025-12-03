@@ -97,11 +97,11 @@ We welcome contributions! Whether it's bug reports, feature requests, or code co
 
 ## License
 
-[Add your license here - MIT, GPL, Apache, etc.]
+We use the (MIT License)[LICENSE]. Open source things can be used by everyone!
 
 ## Contact
 
-[Add contact information or links to issue tracker]
+Email: hellofox.computer@proton.me (Proton usage due to security)
 
 ---
 
