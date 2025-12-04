@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History</title>
+    
+    <!-- Import Stack Sans fonts -->
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Notch/stylesheet.css">
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Headline/stylesheet.css">
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Text/stylesheet.css">
+    
+    <style>
+        :root {
+            --bg-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-color: #1c1c1c;
+            --dim-text-color: #5e5e5e;
+            --accent-color: #3584e4;
+            --accent-hover: #1c71d8;
+            --border-color: #d0d0d0;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1e1e1e;
+                --surface-color: #303030;
+                --text-color: #ffffff;
+                --dim-text-color: #c0c0c0;
+                --accent-color: #62a0ea;
+                --accent-hover: #3584e4;
+                --border-color: #454545;
+                --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Stack Sans Text', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            opacity: 0.9;
+            user-select: none;
+            -webkit-user-select: none;
+            pointer-events: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .logo {
+                filter: invert(1);
+            }
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            font-family: 'Stack Sans Notch', system-ui, sans-serif;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.15s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent-color);
+            transform: translateX(4px);
+        }
+
+        .history-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .history-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-title {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-url {
+            font-size: 0.85rem;
+            color: var(--dim-text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-time {
+            font-size: 0.85rem;
+            color: var(--dim-text-color);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--dim-text-color);
+        }
+
+        .empty-state h2 {
+            font-family: 'Stack Sans Headline', system-ui, sans-serif;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <img src="../branding/foamium.svg" alt="Foamium" class="logo">
+            <h1>History</h1>
+        </header>
+        
+        <div class="history-list" id="history-list">
+            <!-- History items will be injected here by Rust -->
+        </div>
+        
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <h2>No History Yet</h2>
+            <p>Pages you visit will appear here.</p>
+        </div>
+    </div>
+</body>
+
+</html>

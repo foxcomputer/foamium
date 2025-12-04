@@ -7,6 +7,9 @@ use webkit6::WebView;
 use std::rc::Rc;
 use gtk4::gdk;
 
+mod database;
+use database::Database;
+
 const APP_ID: &str = "org.foamium.Browser";
 
 fn main() {
@@ -21,7 +24,308 @@ fn main() {
     app.run();
 }
 
+fn generate_history_html(database: &Database) -> String {
+    let history = database.get_history(100).unwrap_or_default();
+    
+    let items_html = if history.is_empty() {
+        r#"<div class="empty-state">
+            <h2>No History Yet</h2>
+            <p>Pages you visit will appear here.</p>
+        </div>"#.to_string()
+    } else {
+        history.iter().map(|entry| {
+            let first_char = entry.title.chars().next().unwrap_or('?').to_uppercase().to_string();
+            let time = entry.timestamp.format("%b %d, %H:%M").to_string();
+            format!(
+                r#"<a href="{}" class="history-item">
+                    <div class="history-icon">{}</div>
+                    <div class="history-content">
+                        <div class="history-title">{}</div>
+                        <div class="history-url">{}</div>
+                    </div>
+                    <div class="history-time">{}</div>
+                </a>"#,
+                html_escape(&entry.url),
+                html_escape(&first_char),
+                html_escape(&entry.title),
+                html_escape(&entry.url),
+                time
+            )
+        }).collect::<Vec<_>>().join("\n")
+    };
+
+    format!(r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History</title>
+    <style>
+        :root {{
+            --bg-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-color: #1c1c1c;
+            --dim-text-color: #5e5e5e;
+            --accent-color: #3584e4;
+            --border-color: #d0d0d0;
+        }}
+        @media (prefers-color-scheme: dark) {{
+            :root {{
+                --bg-color: #1e1e1e;
+                --surface-color: #303030;
+                --text-color: #ffffff;
+                --dim-text-color: #c0c0c0;
+                --accent-color: #62a0ea;
+                --border-color: #454545;
+            }}
+        }}
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }}
+        .container {{ max-width: 900px; margin: 0 auto; }}
+        header {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }}
+        h1 {{ font-size: 1.75rem; font-weight: 600; }}
+        .history-list {{ display: flex; flex-direction: column; gap: 0.5rem; }}
+        .history-item {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.15s ease;
+        }}
+        .history-item:hover {{
+            border-color: var(--accent-color);
+            transform: translateX(4px);
+        }}
+        .history-icon {{
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }}
+        .history-content {{ flex: 1; min-width: 0; }}
+        .history-title {{
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+        .history-url {{
+            font-size: 0.85rem;
+            color: var(--dim-text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+        .history-time {{
+            font-size: 0.85rem;
+            color: var(--dim-text-color);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }}
+        .empty-state {{
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--dim-text-color);
+        }}
+        .empty-state h2 {{ margin-bottom: 0.5rem; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📜 History</h1>
+        </header>
+        <div class="history-list">
+            {}
+        </div>
+    </div>
+</body>
+</html>"#, items_html)
+}
+
+fn generate_bookmarks_html(database: &Database) -> String {
+    let bookmarks = database.get_bookmarks().unwrap_or_default();
+    
+    let items_html = if bookmarks.is_empty() {
+        r#"<div class="empty-state">
+            <h2>No Bookmarks Yet</h2>
+            <p>Save your favorite pages with the star icon.</p>
+        </div>"#.to_string()
+    } else {
+        bookmarks.iter().map(|entry| {
+            let first_char = entry.title.chars().next().unwrap_or('?').to_uppercase().to_string();
+            format!(
+                r#"<a href="{}" class="bookmark-item">
+                    <div class="bookmark-icon">{}</div>
+                    <div class="bookmark-content">
+                        <div class="bookmark-title">{}</div>
+                        <div class="bookmark-url">{}</div>
+                    </div>
+                </a>"#,
+                html_escape(&entry.url),
+                html_escape(&first_char),
+                html_escape(&entry.title),
+                html_escape(&entry.url)
+            )
+        }).collect::<Vec<_>>().join("\n")
+    };
+
+    format!(r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmarks</title>
+    <style>
+        :root {{
+            --bg-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-color: #1c1c1c;
+            --dim-text-color: #5e5e5e;
+            --accent-color: #3584e4;
+            --border-color: #d0d0d0;
+        }}
+        @media (prefers-color-scheme: dark) {{
+            :root {{
+                --bg-color: #1e1e1e;
+                --surface-color: #303030;
+                --text-color: #ffffff;
+                --dim-text-color: #c0c0c0;
+                --accent-color: #62a0ea;
+                --border-color: #454545;
+            }}
+        }}
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }}
+        .container {{ max-width: 900px; margin: 0 auto; }}
+        header {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }}
+        h1 {{ font-size: 1.75rem; font-weight: 600; }}
+        .bookmark-list {{ display: flex; flex-direction: column; gap: 0.5rem; }}
+        .bookmark-item {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.15s ease;
+        }}
+        .bookmark-item:hover {{
+            border-color: var(--accent-color);
+            transform: translateX(4px);
+        }}
+        .bookmark-icon {{
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #f6d32d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1c1c1c;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }}
+        .bookmark-content {{ flex: 1; min-width: 0; }}
+        .bookmark-title {{
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+        .bookmark-url {{
+            font-size: 0.85rem;
+            color: var(--dim-text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+        .empty-state {{
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--dim-text-color);
+        }}
+        .empty-state h2 {{ margin-bottom: 0.5rem; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⭐ Bookmarks</h1>
+        </header>
+        <div class="bookmark-list">
+            {}
+        </div>
+    </div>
+</body>
+</html>"#, items_html)
+}
+
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+     .replace('<', "&lt;")
+     .replace('>', "&gt;")
+     .replace('"', "&quot;")
+     .replace('\'', "&#39;")
+}
+
 fn build_ui(app: &adw::Application) {
+    // Initialize database
+    let database = match Database::new() {
+        Ok(db) => Rc::new(db),
+        Err(e) => {
+            eprintln!("Failed to initialize database: {}", e);
+            // In a real app, we might want to show a dialog or exit
+            // For now, we'll proceed but history/bookmarks won't work
+            // We can use a dummy implementation or just handle the Option
+            return; 
+        }
+    };
+
     let window = adw::ApplicationWindow::builder()
         .application(app)
         .title("Foamium Browser")
@@ -54,6 +358,11 @@ fn build_ui(app: &adw::Application) {
     url_entry.set_hexpand(true);
     url_entry.set_input_purpose(gtk4::InputPurpose::Url);
     header.set_title_widget(Some(&url_entry));
+
+    // Bookmark Button (Star)
+    let bookmark_btn = Button::from_icon_name("starred-symbolic");
+    bookmark_btn.set_tooltip_text(Some("Toggle Bookmark"));
+    header.pack_end(&bookmark_btn);
 
     // New Tab Button
     let new_tab_btn = Button::from_icon_name("tab-new-symbolic");
@@ -97,6 +406,7 @@ fn build_ui(app: &adw::Application) {
     let create_tab = {
         let tab_view = tab_view.clone();
         let url_entry = url_entry.clone();
+        let database = database.clone();
         Rc::new(move |url: Option<&str>| {
             let webview = WebView::new();
             webview.set_hexpand(true);
@@ -105,9 +415,18 @@ fn build_ui(app: &adw::Application) {
             let default_url = "foamium:newtab";
             let url_to_load = url.unwrap_or(default_url);
             
-            // Resolve custom URIs
-            let resolved_url = resolve_uri(url_to_load);
-            webview.load_uri(&resolved_url);
+            // Handle special dynamic pages
+            if url_to_load == "foamium:history" {
+                let html = generate_history_html(&database);
+                webview.load_html(&html, Some("foamium:history"));
+            } else if url_to_load == "foamium:bookmarks" {
+                let html = generate_bookmarks_html(&database);
+                webview.load_html(&html, Some("foamium:bookmarks"));
+            } else {
+                // Resolve custom URIs
+                let resolved_url = resolve_uri(url_to_load);
+                webview.load_uri(&resolved_url);
+            }
             
             let page = tab_view.append(&webview);
             page.set_title("New Tab");
@@ -136,17 +455,33 @@ fn build_ui(app: &adw::Application) {
                 true
             });
             
-            // Update URL bar when URL changes
+            // Update URL bar when URL changes and record history
             let url_entry = url_entry.clone();
             let tab_view = tab_view.clone();
             let page_weak = page.downgrade();
+            let database = database.clone();
             
             webview.connect_load_changed(move |wv, load_event| {
                 if load_event == webkit6::LoadEvent::Committed {
-                    // Only update if this is the currently selected tab
-                    if let Some(page) = page_weak.upgrade() {
-                        if tab_view.selected_page().as_ref() == Some(&page) {
-                            if let Some(uri) = wv.uri() {
+                    if let Some(uri) = wv.uri() {
+                        // Skip internal pages from history
+                        let is_internal = uri.contains("/resources/pages/") 
+                            || uri.starts_with("foamium:");
+                        
+                        if !is_internal {
+                            // Record in history
+                            let title = wv.title()
+                                .map(|t| t.to_string())
+                                .unwrap_or_else(|| uri.to_string());
+                            
+                            if let Err(e) = database.add_visit(&uri, &title) {
+                                log::warn!("Failed to record history: {}", e);
+                            }
+                        }
+                        
+                        // Only update URL bar if this is the currently selected tab
+                        if let Some(page) = page_weak.upgrade() {
+                            if tab_view.selected_page().as_ref() == Some(&page) {
                                 let display_uri = if uri.contains("/resources/pages/blank.html") {
                                     "".to_string()
                                 } else if uri.contains("/resources/pages/error.html") {
@@ -178,6 +513,39 @@ fn build_ui(app: &adw::Application) {
     tab_view.connect_close_page(move |view, page| {
         view.close_page_finish(page, true);
         glib::Propagation::Proceed
+    });
+
+    // Bookmark Button Handler
+    let tab_view_clone = tab_view.clone();
+    let database_clone = database.clone();
+    let bookmark_btn_clone = bookmark_btn.clone();
+    bookmark_btn.connect_clicked(move |btn| {
+        if let Some(page) = tab_view_clone.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                if let Some(uri) = webview.uri() {
+                    // Skip internal pages
+                    if uri.contains("/resources/pages/") || uri.starts_with("foamium:") {
+                        return;
+                    }
+                    
+                    let title = webview.title()
+                        .map(|t| t.to_string())
+                        .unwrap_or_else(|| uri.to_string());
+                    
+                    // Toggle bookmark
+                    if let Ok(is_bookmarked) = database_clone.is_bookmarked(&uri) {
+                        if is_bookmarked {
+                            let _ = database_clone.remove_bookmark(&uri);
+                            btn.set_icon_name("non-starred-symbolic");
+                        } else {
+                            let _ = database_clone.add_bookmark(&uri, &title);
+                            btn.set_icon_name("starred-symbolic");
+                        }
+                    }
+                }
+            }
+        }
     });
 
     // Connect Navigation Buttons to Active Tab
@@ -213,42 +581,56 @@ fn build_ui(app: &adw::Application) {
 
     // URL Bar Enter
     let tab_view_clone = tab_view.clone();
+    let database_clone = database.clone();
     url_entry.connect_activate(move |entry| {
         let input = entry.text();
-        
-        // Determine if input is a URL or a search query
-        let url_str = if input.starts_with("foamium:") {
-            // Custom foamium: URI
-            resolve_uri(&input)
-        } else if input.contains("://") {
-            // Already has a protocol (http://, https://, etc.)
-            input.to_string()
-        } else if input.contains('.') && !input.contains(' ') {
-            // Looks like a domain (has a dot and no spaces)
-            // Check if it has a TLD-like ending
-            let parts: Vec<&str> = input.split('.').collect();
-            if parts.len() >= 2 && parts.last().unwrap().len() >= 2 && parts.last().unwrap().len() <= 6 {
-                // Likely a domain like "google.com" or "example.co.uk"
-                format!("https://{}", input)
-            } else {
-                // Has a dot but doesn't look like a domain, search it
-                format!("https://www.google.com/search?q={}", urlencoding::encode(&input))
-            }
-        } else {
-            // No dots or has spaces - definitely a search query
-            format!("https://www.google.com/search?q={}", urlencoding::encode(&input))
-        };
         
         if let Some(page) = tab_view_clone.selected_page() {
             let child = page.child();
             if let Some(webview) = child.downcast_ref::<WebView>() {
+                // Handle dynamic foamium: pages
+                if input.as_str() == "foamium:history" {
+                    let html = generate_history_html(&database_clone);
+                    webview.load_html(&html, Some("foamium:history"));
+                    return;
+                } else if input.as_str() == "foamium:bookmarks" {
+                    let html = generate_bookmarks_html(&database_clone);
+                    webview.load_html(&html, Some("foamium:bookmarks"));
+                    return;
+                }
+                
+                // Determine if input is a URL or a search query
+                let url_str = if input.starts_with("foamium:") {
+                    // Custom foamium: URI (newtab, error, warning)
+                    resolve_uri(&input)
+                } else if input.contains("://") {
+                    // Already has a protocol (http://, https://, etc.)
+                    input.to_string()
+                } else if input.contains('.') && !input.contains(' ') {
+                    // Looks like a domain (has a dot and no spaces)
+                    // Check if it has a TLD-like ending
+                    let parts: Vec<&str> = input.split('.').collect();
+                    if parts.len() >= 2 && parts.last().unwrap().len() >= 2 && parts.last().unwrap().len() <= 6 {
+                        // Likely a domain like "google.com" or "example.co.uk"
+                        format!("https://{}", input)
+                    } else {
+                        // Has a dot but doesn't look like a domain, search it
+                        format!("https://www.google.com/search?q={}", urlencoding::encode(&input))
+                    }
+                } else {
+                    // No dots or has spaces - definitely a search query
+                    format!("https://www.google.com/search?q={}", urlencoding::encode(&input))
+                };
+                
                 webview.load_uri(&url_str);
             }
         }
     });
 
-    // Update URL bar when switching tabs
+    // Update URL bar and bookmark button when switching tabs
     let url_entry_clone = url_entry.clone();
+    let bookmark_btn_clone = bookmark_btn.clone();
+    let database_clone = database.clone();
     tab_view.connect_selected_page_notify(move |view| {
         if let Some(page) = view.selected_page() {
             let child = page.child();
@@ -261,12 +643,28 @@ fn build_ui(app: &adw::Application) {
                         "foamium:error".to_string()
                     } else if uri.contains("/resources/pages/warning.html") {
                         "foamium:warning".to_string()
+                    } else if uri == "foamium:history" || uri == "foamium:bookmarks" {
+                        uri.to_string()
                     } else {
                         uri.to_string()
                     };
                     url_entry_clone.set_text(&display_uri);
+                    
+                    // Update bookmark button icon
+                    let is_internal = uri.contains("/resources/pages/") || uri.starts_with("foamium:");
+                    if is_internal {
+                        bookmark_btn_clone.set_icon_name("non-starred-symbolic");
+                    } else {
+                        let is_bookmarked = database_clone.is_bookmarked(&uri).unwrap_or(false);
+                        if is_bookmarked {
+                            bookmark_btn_clone.set_icon_name("starred-symbolic");
+                        } else {
+                            bookmark_btn_clone.set_icon_name("non-starred-symbolic");
+                        }
+                    }
                 } else {
                     url_entry_clone.set_text("");
+                    bookmark_btn_clone.set_icon_name("non-starred-symbolic");
                 }
             }
         }
