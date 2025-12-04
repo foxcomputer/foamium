@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Not Found</title>
+
+    <!-- Import Stack Sans fonts -->
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Notch/stylesheet.css">
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Headline/stylesheet.css">
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Text/stylesheet.css">
+
     <style>
         :root {
             --bg-color: #fafafa;
@@ -39,7 +45,7 @@
         }
 
         body {
-            font-family: 'Cantarell', system-ui, -apple-system, sans-serif;
+            font-family: 'Stack Sans Text', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
@@ -65,9 +71,19 @@
         }
 
         .error-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
             opacity: 0.8;
+            user-select: none;
+            -webkit-user-select: none;
+            pointer-events: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .error-icon {
+                filter: invert(1);
+            }
         }
 
         h1 {
@@ -75,6 +91,7 @@
             font-weight: 700;
             margin-bottom: 0.75rem;
             color: var(--text-color);
+            font-family: 'Stack Sans Notch', system-ui, sans-serif;
         }
 
         .error-code {
@@ -110,7 +127,7 @@
         }
 
         button {
-            font-family: 'Cantarell', system-ui, sans-serif;
+            font-family: 'Stack Sans Text', system-ui, sans-serif;
             font-size: 0.95rem;
             font-weight: 600;
             padding: 0.65rem 1.5rem;
@@ -154,6 +171,7 @@
             font-size: 1rem;
             margin-bottom: 1rem;
             color: var(--text-color);
+            font-family: 'Stack Sans Headline', system-ui, sans-serif;
         }
 
         .suggestions ul {
@@ -180,7 +198,7 @@
 <body>
     <div class="container">
         <div class="error-card">
-            <div class="error-icon">🔍</div>
+            <img src="../branding/fox.svg" alt="Error" class="error-icon">
             <h1>Website Not Found</h1>
             <p class="error-code">Unable to connect</p>
             <p>The website you're trying to reach doesn't exist or couldn't be found.</p>

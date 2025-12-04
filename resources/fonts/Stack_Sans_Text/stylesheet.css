@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'Stack Sans Text';
+    src: url('StackSansText-Light.woff2') format('woff2'),
+        url('StackSansText-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Text';
+    src: url('StackSansText-ExtraLight.woff2') format('woff2'),
+        url('StackSansText-ExtraLight.woff') format('woff');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Text';
+    src: url('StackSansText-SemiBold.woff2') format('woff2'),
+        url('StackSansText-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Text';
+    src: url('StackSansText-Regular.woff2') format('woff2'),
+        url('StackSansText-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Text';
+    src: url('StackSansText-Bold.woff2') format('woff2'),
+        url('StackSansText-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Text';
+    src: url('StackSansText-Medium.woff2') format('woff2'),
+        url('StackSansText-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+}
+

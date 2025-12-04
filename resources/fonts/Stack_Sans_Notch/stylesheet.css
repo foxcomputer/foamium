@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'Stack Sans Notch';
+    src: url('StackSansNotch-Light.woff2') format('woff2'),
+        url('StackSansNotch-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Notch';
+    src: url('StackSansNotch-ExtraLight.woff2') format('woff2'),
+        url('StackSansNotch-ExtraLight.woff') format('woff');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Notch';
+    src: url('StackSansNotch-Bold.woff2') format('woff2'),
+        url('StackSansNotch-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Notch';
+    src: url('StackSansNotch-Regular.woff2') format('woff2'),
+        url('StackSansNotch-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Notch';
+    src: url('StackSansNotch-Medium.woff2') format('woff2'),
+        url('StackSansNotch-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Stack Sans Notch';
+    src: url('StackSansNotch-SemiBold.woff2') format('woff2'),
+        url('StackSansNotch-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+}
+

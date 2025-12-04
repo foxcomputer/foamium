@@ -93,6 +93,20 @@ sudo pacman -S base-devel gtk4 webkit2gtk-4.1 libadwaita
    ./target/release/foamium_app
    ```
 
+4. **(Optional) Install desktop integration:**
+   ```bash
+   # Install icon
+   mkdir -p ~/.local/share/icons/hicolor/scalable/apps/
+   cp resources/branding/foamium.svg ~/.local/share/icons/hicolor/scalable/apps/org.foamium.Browser.svg
+   
+   # Install desktop entry
+   cp resources/org.foamium.Browser.desktop ~/.local/share/applications/
+   
+   # Update caches
+   gtk-update-icon-cache ~/.local/share/icons/hicolor/
+   update-desktop-database ~/.local/share/applications/
+   ```
+
 ## Development
 
 Foamium is organized as a Rust workspace with the following structure:

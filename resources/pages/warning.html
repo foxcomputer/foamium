@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Security Warning</title>
+
+    <!-- Import Stack Sans fonts -->
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Notch/stylesheet.css">
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Headline/stylesheet.css">
+    <link rel="stylesheet" href="../fonts/Stack_Sans_Text/stylesheet.css">
+
     <style>
         :root {
             --bg-color: #fafafa;
@@ -41,7 +47,7 @@
         }
 
         body {
-            font-family: 'Cantarell', system-ui, -apple-system, sans-serif;
+            font-family: 'Stack Sans Text', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
@@ -76,7 +82,17 @@
         }
 
         .warning-icon {
-            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            user-select: none;
+            -webkit-user-select: none;
+            pointer-events: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .warning-icon {
+                filter: invert(1);
+            }
         }
 
         .warning-header h1 {
@@ -84,6 +100,7 @@
             font-weight: 700;
             color: var(--text-color);
             margin: 0;
+            font-family: 'Stack Sans Notch', system-ui, sans-serif;
         }
 
         .warning-type {
@@ -133,7 +150,7 @@
         }
 
         button {
-            font-family: 'Cantarell', system-ui, sans-serif;
+            font-family: 'Stack Sans Text', system-ui, sans-serif;
             font-size: 0.95rem;
             font-weight: 600;
             padding: 0.75rem 1.75rem;
@@ -179,6 +196,7 @@
             font-size: 1rem;
             margin-bottom: 0.75rem;
             color: var(--text-color);
+            font-family: 'Stack Sans Headline', system-ui, sans-serif;
         }
 
         .info-box ul {
@@ -206,7 +224,7 @@
     <div class="container">
         <div class="warning-card">
             <div class="warning-header">
-                <div class="warning-icon">⚠️</div>
+                <img src="../branding/fox.svg" alt="Warning" class="warning-icon">
                 <div>
                     <div class="warning-type">Security Warning</div>
                     <h1>Connection Not Secure</h1>

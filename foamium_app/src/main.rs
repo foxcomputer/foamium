@@ -29,6 +29,9 @@ fn build_ui(app: &adw::Application) {
         .default_height(768)
         .build();
 
+    // Set window icon name (icon should be installed in system icon theme)
+    window.set_icon_name(Some("org.foamium.Browser"));
+
     // Create Header Bar
     let header = adw::HeaderBar::new();
     
@@ -69,6 +72,27 @@ fn build_ui(app: &adw::Application) {
 
     window.set_content(Some(&main_box));
     
+    // Helper to resolve custom foamium: URIs to file paths
+    let resolve_uri = |uri: &str| -> String {
+        if uri.starts_with("foamium:") {
+            let page = uri.strip_prefix("foamium:").unwrap_or("");
+            let page_file = match page {
+                "newtab" => "blank.html",
+                "error" => "error.html",
+                "warning" => "warning.html",
+                _ => "blank.html",
+            };
+            
+            std::env::current_dir()
+                .ok()
+                .and_then(|p| p.join(format!("resources/pages/{}", page_file)).to_str().map(String::from))
+                .map(|path| format!("file://{}", path))
+                .unwrap_or_else(|| "about:blank".to_string())
+        } else {
+            uri.to_string()
+        }
+    };
+
     // Helper to create a new tab
     let create_tab = {
         let tab_view = tab_view.clone();
@@ -77,15 +101,12 @@ fn build_ui(app: &adw::Application) {
             webview.set_hexpand(true);
             webview.set_vexpand(true);
             
-            // Get the path to the blank page
-            let blank_page_path = std::env::current_dir()
-                .ok()
-                .and_then(|p| p.join("resources/pages/blank.html").to_str().map(String::from))
-                .unwrap_or_else(|| "about:blank".to_string());
+            let default_url = "foamium:newtab";
+            let url_to_load = url.unwrap_or(default_url);
             
-            let default_url = format!("file://{}", blank_page_path);
-            let url_to_load = url.unwrap_or(&default_url);
-            webview.load_uri(url_to_load);
+            // Resolve custom URIs
+            let resolved_url = resolve_uri(url_to_load);
+            webview.load_uri(&resolved_url);
             
             let page = tab_view.append(&webview);
             page.set_title("New Tab");
@@ -104,13 +125,9 @@ fn build_ui(app: &adw::Application) {
             webview.connect_load_failed(move |_wv, _load_event, failing_uri, error| {
                 log::warn!("Failed to load {}: {}", failing_uri, error);
                 
-                // Get the path to the error page
-                let error_page_path = std::env::current_dir()
-                    .ok()
-                    .and_then(|p| p.join("resources/pages/error.html").to_str().map(String::from))
-                    .unwrap_or_else(|| "about:blank".to_string());
-                
-                let error_url = format!("file://{}?url={}", error_page_path, 
+                // Use foamium:error with the failed URL as a parameter
+                let error_url = format!("{}?url={}", 
+                    resolve_uri("foamium:error"),
                     urlencoding::encode(failing_uri));
                 
                 _wv.load_uri(&error_url);
@@ -173,7 +190,9 @@ fn build_ui(app: &adw::Application) {
     let tab_view_clone = tab_view.clone();
     url_entry.connect_activate(move |entry| {
         let url = entry.text();
-        let url_str = if url.contains("://") {
+        let url_str = if url.starts_with("foamium:") {
+            resolve_uri(&url)
+        } else if url.contains("://") {
             url.to_string()
         } else {
             format!("https://{}", url)
@@ -194,7 +213,17 @@ fn build_ui(app: &adw::Application) {
             let child = page.child();
             if let Some(webview) = child.downcast_ref::<WebView>() {
                 if let Some(uri) = webview.uri() {
-                    url_entry_clone.set_text(&uri);
+                    // Convert file:// URIs back to foamium: scheme for display
+                    let display_uri = if uri.contains("/resources/pages/blank.html") {
+                        "foamium:newtab".to_string()
+                    } else if uri.contains("/resources/pages/error.html") {
+                        "foamium:error".to_string()
+                    } else if uri.contains("/resources/pages/warning.html") {
+                        "foamium:warning".to_string()
+                    } else {
+                        uri.to_string()
+                    };
+                    url_entry_clone.set_text(&display_uri);
                 } else {
                     url_entry_clone.set_text("");
                 }
