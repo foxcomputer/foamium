@@ -77,7 +77,14 @@ fn build_ui(app: &adw::Application) {
             webview.set_hexpand(true);
             webview.set_vexpand(true);
             
-            let url_to_load = url.unwrap_or("about:blank");
+            // Get the path to the blank page
+            let blank_page_path = std::env::current_dir()
+                .ok()
+                .and_then(|p| p.join("resources/pages/blank.html").to_str().map(String::from))
+                .unwrap_or_else(|| "about:blank".to_string());
+            
+            let default_url = format!("file://{}", blank_page_path);
+            let url_to_load = url.unwrap_or(&default_url);
             webview.load_uri(url_to_load);
             
             let page = tab_view.append(&webview);
@@ -91,6 +98,24 @@ fn build_ui(app: &adw::Application) {
                 if let (Some(title), Some(page)) = (wv.title(), page_weak.upgrade()) {
                     page.set_title(&title);
                 }
+            });
+            
+            // Handle load failures
+            webview.connect_load_failed(move |_wv, _load_event, failing_uri, error| {
+                log::warn!("Failed to load {}: {}", failing_uri, error);
+                
+                // Get the path to the error page
+                let error_page_path = std::env::current_dir()
+                    .ok()
+                    .and_then(|p| p.join("resources/pages/error.html").to_str().map(String::from))
+                    .unwrap_or_else(|| "about:blank".to_string());
+                
+                let error_url = format!("file://{}?url={}", error_page_path, 
+                    urlencoding::encode(failing_uri));
+                
+                _wv.load_uri(&error_url);
+                
+                true
             });
             
             // Update URL bar when switching to this tab or when URL changes

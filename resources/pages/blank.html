@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <style>
+        :root {
+            --bg-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-color: #1c1c1c;
+            --dim-text-color: #5e5e5e;
+            --accent-color: #3584e4;
+            --accent-hover: #1c71d8;
+            --border-color: #d0d0d0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1e1e1e;
+                --surface-color: #303030;
+                --text-color: #ffffff;
+                --dim-text-color: #c0c0c0;
+                --accent-color: #62a0ea;
+                --accent-hover: #3584e4;
+                --border-color: #454545;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cantarell', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .logo {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.6;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .subtitle {
+            color: var(--dim-text-color);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hint {
+            color: var(--dim-text-color);
+            font-size: 0.9rem;
+            margin-top: 3rem;
+            padding: 1rem;
+            background: var(--surface-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .hint strong {
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">🌊</div>
+        <h1>Foamium</h1>
+        <p class="subtitle">Fast, Native, Secure</p>
+
+        <div class="hint">
+            <strong>Tip:</strong> Press <strong>Ctrl+L</strong> to focus the address bar and start browsing
+        </div>
+    </div>
+</body>
+
+</html>

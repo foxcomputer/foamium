@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found</title>
+    <style>
+        :root {
+            --bg-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-color: #1c1c1c;
+            --dim-text-color: #5e5e5e;
+            --accent-color: #3584e4;
+            --accent-hover: #1c71d8;
+            --error-color: #e01b24;
+            --border-color: #d0d0d0;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1e1e1e;
+                --surface-color: #303030;
+                --text-color: #ffffff;
+                --dim-text-color: #c0c0c0;
+                --accent-color: #62a0ea;
+                --accent-hover: #3584e4;
+                --error-color: #ff6b6b;
+                --border-color: #454545;
+                --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cantarell', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .error-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+        }
+
+        .error-code {
+            color: var(--error-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: var(--dim-text-color);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .url-display {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin: 1.5rem 0;
+            font-family: 'Monospace', monospace;
+            font-size: 0.9rem;
+            color: var(--dim-text-color);
+            word-break: break-all;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        button {
+            font-family: 'Cantarell', system-ui, sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.65rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(53, 132, 228, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-color);
+        }
+
+        .suggestions {
+            text-align: left;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .suggestions h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .suggestions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .suggestions li {
+            padding: 0.5rem 0;
+            color: var(--dim-text-color);
+            font-size: 0.9rem;
+        }
+
+        .suggestions li::before {
+            content: "•";
+            color: var(--accent-color);
+            font-weight: bold;
+            display: inline-block;
+            width: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="error-card">
+            <div class="error-icon">🔍</div>
+            <h1>Website Not Found</h1>
+            <p class="error-code">Unable to connect</p>
+            <p>The website you're trying to reach doesn't exist or couldn't be found.</p>
+
+            <div class="url-display" id="failed-url">about:blank</div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="window.history.back()">Go Back</button>
+                <button class="btn-secondary" onclick="window.location.reload()">Try Again</button>
+            </div>
+
+            <div class="suggestions">
+                <h3>Suggestions:</h3>
+                <ul>
+                    <li>Check the URL for typos</li>
+                    <li>Make sure you're connected to the internet</li>
+                    <li>Try searching for the website instead</li>
+                    <li>The website might be temporarily unavailable</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the failed URL from the query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const failedUrl = urlParams.get('url');
+        if (failedUrl) {
+            document.getElementById('failed-url').textContent = decodeURIComponent(failedUrl);
+        }
+    </script>
+</body>
+
+</html>
