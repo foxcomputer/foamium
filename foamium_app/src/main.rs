@@ -189,13 +189,29 @@ fn build_ui(app: &adw::Application) {
     // URL Bar Enter
     let tab_view_clone = tab_view.clone();
     url_entry.connect_activate(move |entry| {
-        let url = entry.text();
-        let url_str = if url.starts_with("foamium:") {
-            resolve_uri(&url)
-        } else if url.contains("://") {
-            url.to_string()
+        let input = entry.text();
+        
+        // Determine if input is a URL or a search query
+        let url_str = if input.starts_with("foamium:") {
+            // Custom foamium: URI
+            resolve_uri(&input)
+        } else if input.contains("://") {
+            // Already has a protocol (http://, https://, etc.)
+            input.to_string()
+        } else if input.contains('.') && !input.contains(' ') {
+            // Looks like a domain (has a dot and no spaces)
+            // Check if it has a TLD-like ending
+            let parts: Vec<&str> = input.split('.').collect();
+            if parts.len() >= 2 && parts.last().unwrap().len() >= 2 && parts.last().unwrap().len() <= 6 {
+                // Likely a domain like "google.com" or "example.co.uk"
+                format!("https://{}", input)
+            } else {
+                // Has a dot but doesn't look like a domain, search it
+                format!("https://www.google.com/search?q={}", urlencoding::encode(&input))
+            }
         } else {
-            format!("https://{}", url)
+            // No dots or has spaces - definitely a search query
+            format!("https://www.google.com/search?q={}", urlencoding::encode(&input))
         };
         
         if let Some(page) = tab_view_clone.selected_page() {
