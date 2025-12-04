@@ -96,6 +96,7 @@ fn build_ui(app: &adw::Application) {
     // Helper to create a new tab
     let create_tab = {
         let tab_view = tab_view.clone();
+        let url_entry = url_entry.clone();
         Rc::new(move |url: Option<&str>| {
             let webview = WebView::new();
             webview.set_hexpand(true);
@@ -135,8 +136,32 @@ fn build_ui(app: &adw::Application) {
                 true
             });
             
-            // Update URL bar when switching to this tab or when URL changes
-            // Note: This is a simplified implementation. In a real app, we'd need to track the active tab more carefully.
+            // Update URL bar when URL changes
+            let url_entry = url_entry.clone();
+            let tab_view = tab_view.clone();
+            let page_weak = page.downgrade();
+            
+            webview.connect_load_changed(move |wv, load_event| {
+                if load_event == webkit6::LoadEvent::Committed {
+                    // Only update if this is the currently selected tab
+                    if let Some(page) = page_weak.upgrade() {
+                        if tab_view.selected_page().as_ref() == Some(&page) {
+                            if let Some(uri) = wv.uri() {
+                                let display_uri = if uri.contains("/resources/pages/blank.html") {
+                                    "".to_string()
+                                } else if uri.contains("/resources/pages/error.html") {
+                                    "foamium:error".to_string()
+                                } else if uri.contains("/resources/pages/warning.html") {
+                                    "foamium:warning".to_string()
+                                } else {
+                                    uri.to_string()
+                                };
+                                url_entry.set_text(&display_uri);
+                            }
+                        }
+                    }
+                }
+            });
         })
     };
 
@@ -231,7 +256,7 @@ fn build_ui(app: &adw::Application) {
                 if let Some(uri) = webview.uri() {
                     // Convert file:// URIs back to foamium: scheme for display
                     let display_uri = if uri.contains("/resources/pages/blank.html") {
-                        "foamium:newtab".to_string()
+                        "".to_string()
                     } else if uri.contains("/resources/pages/error.html") {
                         "foamium:error".to_string()
                     } else if uri.contains("/resources/pages/warning.html") {
