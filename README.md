@@ -6,36 +6,61 @@ A fast, lightweight, and native web browser for Linux built with Rust.
 
 Foamium is a modern web browser that combines the power of WebKit with a beautiful native interface. Built from the ground up using Rust, it delivers a secure and efficient browsing experience that feels right at home on your Linux desktop.
 
+## Release Channels
+
+Foamium is available in three release channels:
+
+| Channel | Description | Stability |
+|---------|-------------|-----------|
+| **Foamium Nightly** | Daily development builds with cutting-edge features | Experimental |
+| **Foamium Beta** | Pre-release builds for testing before stable | Testing |
+| **Foamium** | Production-ready stable releases | Stable |
+
+### Nightly Launch
+
+Foamium Nightly is launching today and will receive weekly updates. Download the latest version from the [releases page](https://github.com/foxcomputer/foamium/releases) to get the latest features and bug fixes.
+
 ## Features
 
 - **Tabbed Browsing**: Manage multiple web pages with ease using our intuitive tab system
 - **Modern Navigation**: Fast and responsive navigation controls (Back, Forward, Reload)
-- **Smart Address Bar**: Quickly navigate to any website
-- **Native Interface**: Beautiful, native Adwaita-styled UI that integrates seamlessly with your desktop
+- **Smart Address Bar**: Quickly navigate to any website with site security indicators
+- **Site Info Panel**: View connection security status and manage cookies
+- **Bookmarks & History**: Persistent bookmarks and browsing history
+- **Native Interface**: Beautiful, Adwaita-styled UI that integrates seamlessly with GNOME
 - **Performance**: Built with Rust for speed, safety, and efficiency
 - **WebKit Engine**: Powered by WebKitGTK 6.0 for full HTML5, CSS3, and JavaScript support
 
-## Development Status
+## Installation
 
-**Current Version: Alpha**
+### Using the GUI Installer
 
-Foamium is in active development. While the core browsing functionality is stable, we're continuously adding new features and improvements.
+The easiest way to install Foamium is using the graphical installer:
 
-### Roadmap to Beta 1.0
+```bash
+# Clone and build
+git clone https://github.com/foxcomputer/foamium.git
+cd foamium
 
-**Beta 1.0 Release Date: January 2nd, 2026**
+# Run the Nightly installer (default)
+cargo run -p foamium_installer
 
-Planned features to be completed before the launch of Beta 1.0:
-- Bookmarks manager
-- Browsing history
-- Download manager
-- Settings and preferences
-- Custom search engines
-- Privacy and security enhancements
+# Or run the Beta/Stable installer
+cargo run -p foamium_installer --no-default-features --features beta
+cargo run -p foamium_installer --no-default-features --features stable
+```
+
+The installer will:
+- Build the release binary
+- Install to `/usr/local/bin/`
+- Set up desktop integration
+- Install the application icon
+
+### Manual Installation
+
+See [Building from Source](#building-from-source) below.
 
 ## Keyboard Shortcuts
-
-Foamium supports the following keyboard shortcuts for efficient browsing:
 
 | Shortcut | Action |
 |----------|--------|
@@ -44,16 +69,17 @@ Foamium supports the following keyboard shortcuts for efficient browsing:
 | **Ctrl+R** or **F5** | Reload current page |
 | **Alt+Left** or **Alt+Backspace** | Navigate back |
 | **Alt+Right** | Navigate forward |
-| **Ctrl+L** | Focus address bar (and select all text) |
+| **Ctrl+L** | Focus address bar |
 | **Ctrl+Tab** | Switch to next tab |
 | **Ctrl+Shift+Tab** | Switch to previous tab |
+| **Ctrl+H** | Open History |
+| **Ctrl+B** | Open Bookmarks |
+| **Ctrl+D** | Toggle bookmark for current page |
 | **Ctrl+Q** | Quit Foamium |
 
 ## Building from Source
 
 ### Prerequisites
-
-Foamium requires the following dependencies:
 
 **Fedora/RHEL:**
 ```bash
@@ -74,51 +100,59 @@ sudo pacman -S base-devel gtk4 webkit2gtk-4.1 libadwaita
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/foamium.git
+   git clone https://github.com/foxcomputer/foamium.git
    cd foamium
    ```
 
-2. **Build the project:**
+2. **Build for your desired channel:**
    ```bash
+   # Nightly (default)
    cargo build --release -p foamium_app
+   
+   # Beta
+   cargo build --release -p foamium_app --no-default-features --features beta
+   
+   # Stable
+   cargo build --release -p foamium_app --no-default-features --features stable
    ```
 
 3. **Run Foamium:**
    ```bash
-   cargo run --release -p foamium_app
-   ```
-
-   Or run the compiled binary directly:
-   ```bash
    ./target/release/foamium_app
-   ```
-
-4. **(Optional) Install desktop integration:**
-   ```bash
-   # Install icon
-   mkdir -p ~/.local/share/icons/hicolor/scalable/apps/
-   cp resources/branding/foamium.svg ~/.local/share/icons/hicolor/scalable/apps/org.foamium.Browser.svg
-   
-   # Install desktop entry
-   cp resources/org.foamium.Browser.desktop ~/.local/share/applications/
-   
-   # Update caches
-   gtk-update-icon-cache ~/.local/share/icons/hicolor/
-   update-desktop-database ~/.local/share/applications/
    ```
 
 ## Development
 
-Foamium is organized as a Rust workspace with the following structure:
+Foamium is organized as a Rust workspace:
 
-- **foamium_app**: Main browser application (GTK4/Libadwaita UI + WebKitGTK)
-- **foamium_net**: Network and HTTP utilities (legacy)
-- **foamium_dom**: DOM parser (legacy)
-- **foamium_css**: CSS parser (legacy)
-- **foamium_layout**: Layout engine (legacy)
-- **foamium_render**: Rendering utilities (legacy)
+| Crate | Description |
+|-------|-------------|
+| **foamium_app** | Main browser application (GTK4/Libadwaita + WebKitGTK) |
+| **foamium_installer** | GUI installer for all release channels |
+| **foamium_net** | Network utilities (legacy) |
+| **foamium_dom** | DOM parser (legacy) |
+| **foamium_css** | CSS parser (legacy) |
+| **foamium_layout** | Layout engine (legacy) |
+| **foamium_render** | Rendering utilities (legacy) |
 
-The main application (`foamium_app`) uses WebKitGTK for rendering, while the other crates contain experimental parsing and layout code from earlier development phases.
+### Development Status
+
+**Current Version: Alpha**
+
+Foamium is in active development. Core browsing functionality is stable, with new features being added continuously.
+
+### Roadmap to Beta 1.0
+
+**Target: January 2nd, 2026**
+
+- [x] Bookmarks manager
+- [x] Browsing history  
+- [x] Site security indicators
+- [x] Cookie management
+- [ ] Download manager
+- [ ] Settings and preferences
+- [ ] Custom search engines
+- [ ] Privacy enhancements
 
 ### Contributing
 
@@ -126,11 +160,11 @@ We welcome contributions! Whether it's bug reports, feature requests, or code co
 
 ## License
 
-We use the [MIT License](LICENSE). Open source things can be used by everyone!
+[MIT License](LICENSE) - Open source for everyone!
 
 ## Contact
 
-Email: hellofox.computer@proton.me (Proton usage due to security)
+Email: hellofox.computer@proton.me
 
 ---
 

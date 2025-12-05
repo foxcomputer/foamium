@@ -10,14 +10,34 @@ use gtk4::gdk;
 mod database;
 use database::Database;
 
-const APP_ID: &str = "org.foamium.Browser";
+// Channel-specific configuration
+#[cfg(feature = "stable")]
+mod channel {
+    pub const APP_ID: &str = "org.foamium.Browser";
+    pub const APP_NAME: &str = "Foamium";
+    pub const ICON_NAME: &str = "foamium";
+}
+
+#[cfg(feature = "beta")]
+mod channel {
+    pub const APP_ID: &str = "org.foamium.Browser.Beta";
+    pub const APP_NAME: &str = "Foamium Beta";
+    pub const ICON_NAME: &str = "foamium-beta";
+}
+
+#[cfg(feature = "nightly")]
+mod channel {
+    pub const APP_ID: &str = "org.foamium.Browser.Nightly";
+    pub const APP_NAME: &str = "Foamium Nightly";
+    pub const ICON_NAME: &str = "foamium-nightly";
+}
 
 fn main() {
     env_logger::init();
     
     // Initialize GTK and WebKit
     let app = adw::Application::builder()
-        .application_id(APP_ID)
+        .application_id(channel::APP_ID)
         .build();
 
     app.connect_activate(build_ui);
