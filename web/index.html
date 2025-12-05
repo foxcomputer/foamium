@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foamium - Fast, Native, Secure Web Browser</title>
+    <meta name="description"
+        content="Foamium is a modern web browser built with Rust, featuring a beautiful native GNOME interface and powered by WebKit.">
+    <link rel="icon" href="assets/foamium.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <img src="assets/foamium.svg" alt="Foamium" width="32" height="32">
+                <span>Foamium</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#download">Download</a>
+                <a href="https://github.com/foxcomputer/foamium" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🚀 Nightly builds available now</div>
+            <h1>Browse the web.<br><span class="gradient-text">Faster. Safer. Native.</span></h1>
+            <p class="hero-subtitle">
+                Foamium is a modern web browser built with Rust, combining the power of WebKit
+                with a beautiful native GNOME interface.
+            </p>
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Nightly
+                </a>
+                <a href="https://github.com/foxcomputer/foamium" class="btn btn-secondary" target="_blank">
+                    View on GitHub
+                </a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="assets/foamium.svg" alt="Foamium Logo" class="hero-logo">
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Why Foamium?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Built with Rust for maximum performance and memory safety. No more sluggish browsing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure by Design</h3>
+                    <p>Rust's memory safety guarantees combined with WebKit's security features protect you online.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Native Experience</h3>
+                    <p>Beautiful Adwaita-styled interface that feels right at home on your GNOME desktop.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📑</div>
+                    <h3>Tab Management</h3>
+                    <p>Intuitive tabbed browsing with smooth animations powered by libadwaita.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔖</div>
+                    <h3>Bookmarks & History</h3>
+                    <p>Keep track of your favorite sites and easily revisit your browsing history.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>WebKit Powered</h3>
+                    <p>Full HTML5, CSS3, and JavaScript support through WebKitGTK 6.0.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <h2>Get Foamium</h2>
+            <p class="download-subtitle">Choose your release channel</p>
+
+            <div class="download-cards">
+                <div class="download-card nightly">
+                    <div class="channel-badge">Nightly</div>
+                    <img src="assets/foamium-nightly.svg" alt="Foamium Nightly" class="channel-logo">
+                    <h3>Foamium Nightly</h3>
+                    <p>Cutting-edge features, daily updates. For early adopters.</p>
+                    <a href="https://github.com/foxcomputer/foamium/releases" class="btn btn-primary">Download</a>
+                </div>
+
+                <div class="download-card beta">
+                    <div class="channel-badge">Beta</div>
+                    <img src="assets/foamium-beta.svg" alt="Foamium Beta" class="channel-logo">
+                    <h3>Foamium Beta</h3>
+                    <p>Pre-release testing. More stable than nightly.</p>
+                    <a href="#" class="btn btn-secondary disabled">Coming Soon</a>
+                </div>
+
+                <div class="download-card stable">
+                    <div class="channel-badge">Stable</div>
+                    <img src="assets/foamium.svg" alt="Foamium" class="channel-logo">
+                    <h3>Foamium</h3>
+                    <p>Production-ready. Recommended for most users.</p>
+                    <a href="#" class="btn btn-secondary disabled">Coming Soon</a>
+                </div>
+            </div>
+
+            <div class="install-methods">
+                <h3>Installation Methods</h3>
+                <div class="install-tabs">
+                    <div class="install-tab active" data-tab="flatpak">Flatpak</div>
+                    <div class="install-tab" data-tab="source">From Source</div>
+                </div>
+                <div class="install-content">
+                    <div class="install-panel active" id="flatpak">
+                        <pre><code># Download the .flatpak file from GitHub Releases, then:
+flatpak install ./foamium-nightly.flatpak</code></pre>
+                    </div>
+                    <div class="install-panel" id="source">
+                        <pre><code># Clone and build
+git clone https://github.com/foxcomputer/foamium.git
+cd foamium
+cargo build --release -p foamium_app
+
+# Run
+./target/release/foamium_app</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="assets/foamium.svg" alt="Foamium" width="40" height="40">
+                    <p>Fast, Native, Secure Web Browser</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/foxcomputer/foamium" target="_blank">GitHub</a>
+                    <a href="https://github.com/foxcomputer/foamium/issues" target="_blank">Issues</a>
+                    <a href="https://github.com/foxcomputer/foamium/blob/main/LICENSE" target="_blank">License</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Fox Computer. Made with ❤️ and Rust.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching for install methods
+        document.querySelectorAll('.install-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.install-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
