@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Foamium Nightly
+Comment=Fast, Native, Secure Web Browser (Nightly)
+Exec=foamium-nightly %u
+Icon=org.foamium.Browser.Nightly
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=org.foamium.Browser.Nightly
+Keywords=web;browser;internet;

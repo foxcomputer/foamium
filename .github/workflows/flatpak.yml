@@ -1,0 +1,154 @@
+name: Flatpak Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Channel to build'
+        required: true
+        default: 'nightly'
+        type: choice
+        options:
+          - nightly
+          - beta
+          - stable
+          - all
+
+jobs:
+  build-nightly:
+    if: github.event_name == 'workflow_dispatch' && (inputs.channel == 'nightly' || inputs.channel == 'all') || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate cargo sources
+        run: |
+          pip install toml
+          python3 flatpak/generate-cargo-sources.py
+      
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: foamium-nightly.flatpak
+          manifest-path: flatpak/org.foamium.Browser.Nightly.yml
+          cache-key: flatpak-builder-nightly-${{ github.sha }}
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foamium-nightly-flatpak
+          path: foamium-nightly.flatpak
+
+  build-beta:
+    if: github.event_name == 'workflow_dispatch' && (inputs.channel == 'beta' || inputs.channel == 'all')
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate cargo sources
+        run: |
+          pip install toml
+          python3 flatpak/generate-cargo-sources.py
+      
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: foamium-beta.flatpak
+          manifest-path: flatpak/org.foamium.Browser.Beta.yml
+          cache-key: flatpak-builder-beta-${{ github.sha }}
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foamium-beta-flatpak
+          path: foamium-beta.flatpak
+
+  build-stable:
+    if: github.event_name == 'workflow_dispatch' && (inputs.channel == 'stable' || inputs.channel == 'all')
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate cargo sources
+        run: |
+          pip install toml
+          python3 flatpak/generate-cargo-sources.py
+      
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: foamium.flatpak
+          manifest-path: flatpak/org.foamium.Browser.yml
+          cache-key: flatpak-builder-stable-${{ github.sha }}
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foamium-stable-flatpak
+          path: foamium.flatpak
+
+  release:
+    needs: [build-nightly]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Nightly artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: foamium-nightly-flatpak
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: foamium-nightly.flatpak
+          draft: false
+          prerelease: true
+
+  deploy-repo:
+    needs: [build-nightly]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+        continue-on-error: true
+      
+      - name: Setup gh-pages branch
+        run: |
+          git checkout --orphan gh-pages || true
+          git reset --hard
+          mkdir -p repo
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: foamium-nightly-flatpak
+      
+      - name: Update Flatpak repo
+        run: |
+          flatpak build-bundle repo foamium-nightly.flatpak org.foamium.Browser.Nightly
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./repo
+          keep_files: true

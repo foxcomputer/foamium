@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Foamium
+Comment=Fast, Native, Secure Web Browser
+Exec=foamium %u
+Icon=org.foamium.Browser
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=org.foamium.Browser
+Keywords=web;browser;internet;

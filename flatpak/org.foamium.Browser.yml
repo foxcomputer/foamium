@@ -1,0 +1,40 @@
+id: org.foamium.Browser
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: foamium
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --share=network
+  - --socket=pulseaudio
+  - --filesystem=xdg-download
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.secrets
+  - --system-talk-name=org.freedesktop.GeoClue2
+
+modules:
+  - name: foamium
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/foamium/cargo
+    build-commands:
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release -p foamium_app --no-default-features --features stable
+      - install -Dm755 target/release/foamium_app /app/bin/foamium
+      - install -Dm644 resources/applogos/foamium.svg /app/share/icons/hicolor/scalable/apps/org.foamium.Browser.svg
+      - install -Dm644 flatpak/org.foamium.Browser.desktop /app/share/applications/org.foamium.Browser.desktop
+      - install -Dm644 flatpak/org.foamium.Browser.metainfo.xml /app/share/metainfo/org.foamium.Browser.metainfo.xml
+      - mkdir -p /app/share/foamium
+      - cp -r resources/branding resources/fonts resources/pages resources/applogos /app/share/foamium/
+    sources:
+      - type: dir
+        path: ..
+      - cargo-sources.json

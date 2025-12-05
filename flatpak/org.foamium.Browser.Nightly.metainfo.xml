@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.foamium.Browser.Nightly</id>
+  <name>Foamium Nightly</name>
+  <summary>Fast, Native, Secure Web Browser (Nightly)</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer_name>Fox Computer</developer_name>
+  
+  <description>
+    <p>
+      Foamium is a modern web browser built with Rust, combining the power of WebKit 
+      with a beautiful native GNOME interface. This is the Nightly channel with 
+      cutting-edge features and daily updates.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Tabbed browsing with intuitive management</li>
+      <li>Fast navigation controls</li>
+      <li>Smart address bar with security indicators</li>
+      <li>Bookmarks and browsing history</li>
+      <li>Cookie and site data management</li>
+      <li>Native Adwaita-styled interface</li>
+    </ul>
+  </description>
+  
+  <launchable type="desktop-id">org.foamium.Browser.Nightly.desktop</launchable>
+  
+  <url type="homepage">https://github.com/foxcomputer/foamium</url>
+  <url type="bugtracker">https://github.com/foxcomputer/foamium/issues</url>
+  
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/foxcomputer/foamium/main/screenshots/main.png</image>
+      <caption>Foamium browser main window</caption>
+    </screenshot>
+  </screenshots>
+  
+  <content_rating type="oars-1.1" />
+  
+  <releases>
+    <release version="0.1.0" date="2024-12-05">
+      <description>
+        <p>Initial Nightly release</p>
+      </description>
+    </release>
+  </releases>
+  
+  <categories>
+    <category>Network</category>
+    <category>WebBrowser</category>
+  </categories>
+  
+  <keywords>
+    <keyword>web</keyword>
+    <keyword>browser</keyword>
+    <keyword>internet</keyword>
+    <keyword>webkit</keyword>
+  </keywords>
+</component>

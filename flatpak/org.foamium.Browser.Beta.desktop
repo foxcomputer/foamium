@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Foamium Beta
+Comment=Fast, Native, Secure Web Browser (Beta)
+Exec=foamium-beta %u
+Icon=org.foamium.Browser.Beta
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=org.foamium.Browser.Beta
+Keywords=web;browser;internet;

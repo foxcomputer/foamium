@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.foamium.Browser.Beta</id>
+  <name>Foamium Beta</name>
+  <summary>Fast, Native, Secure Web Browser (Beta)</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer_name>Fox Computer</developer_name>
+  
+  <description>
+    <p>
+      Foamium is a modern web browser built with Rust, combining the power of WebKit 
+      with a beautiful native GNOME interface. This is the Beta channel for testing 
+      upcoming stable releases.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Tabbed browsing with intuitive management</li>
+      <li>Fast navigation controls</li>
+      <li>Smart address bar with security indicators</li>
+      <li>Bookmarks and browsing history</li>
+      <li>Cookie and site data management</li>
+      <li>Native Adwaita-styled interface</li>
+    </ul>
+  </description>
+  
+  <launchable type="desktop-id">org.foamium.Browser.Beta.desktop</launchable>
+  
+  <url type="homepage">https://github.com/foxcomputer/foamium</url>
+  <url type="bugtracker">https://github.com/foxcomputer/foamium/issues</url>
+  
+  <content_rating type="oars-1.1" />
+  
+  <releases>
+    <release version="0.1.0" date="2024-12-05">
+      <description>
+        <p>Initial Beta release</p>
+      </description>
+    </release>
+  </releases>
+  
+  <categories>
+    <category>Network</category>
+    <category>WebBrowser</category>
+  </categories>
+</component>
