@@ -1,5 +1,5 @@
 use gtk4::prelude::*;
-use gtk4::{Box as GtkBox, Button, Entry, Orientation, glib};
+use gtk4::{Box as GtkBox, Button, Entry, Orientation, glib, gio};
 use libadwaita as adw;
 use adw::prelude::*;
 use webkit6::prelude::*;
@@ -352,12 +352,81 @@ fn build_ui(app: &adw::Application) {
     nav_box.append(&reload_btn);
     header.pack_start(&nav_box);
     
-    // URL Bar
+    // URL Bar Container with Site Info button
+    let url_box = GtkBox::new(Orientation::Horizontal, 0);
+    url_box.set_hexpand(true);
+    url_box.add_css_class("linked");
+    
+    // Site Info Popover content
+    let site_info_popover = gtk4::Popover::new();
+    let popover_box = GtkBox::new(Orientation::Vertical, 8);
+    popover_box.set_margin_top(12);
+    popover_box.set_margin_bottom(12);
+    popover_box.set_margin_start(12);
+    popover_box.set_margin_end(12);
+    
+    // Connection status label
+    let connection_label = gtk4::Label::new(Some("Connection: Unknown"));
+    connection_label.set_halign(gtk4::Align::Start);
+    connection_label.add_css_class("heading");
+    popover_box.append(&connection_label);
+    
+    // Connection description
+    let connection_desc = gtk4::Label::new(Some(""));
+    connection_desc.set_halign(gtk4::Align::Start);
+    connection_desc.set_wrap(true);
+    connection_desc.set_max_width_chars(30);
+    connection_desc.add_css_class("dim-label");
+    popover_box.append(&connection_desc);
+    
+    // Separator
+    let separator = gtk4::Separator::new(Orientation::Horizontal);
+    separator.set_margin_top(4);
+    separator.set_margin_bottom(4);
+    popover_box.append(&separator);
+    
+    // Cookie Manager button
+    let cookie_btn = Button::with_label("Manage Cookies");
+    cookie_btn.set_halign(gtk4::Align::Start);
+    popover_box.append(&cookie_btn);
+    
+    site_info_popover.set_child(Some(&popover_box));
+    
+    // Site Info MenuButton (always visible)
+    let site_info_btn = gtk4::MenuButton::new();
+    site_info_btn.set_icon_name("dialog-information-symbolic");
+    site_info_btn.set_tooltip_text(Some("Site information"));
+    site_info_btn.add_css_class("flat");
+    site_info_btn.set_popover(Some(&site_info_popover));
+    url_box.append(&site_info_btn);
+    
+    // URL Entry
     let url_entry = Entry::new();
     url_entry.set_placeholder_text(Some("Search or enter address"));
     url_entry.set_hexpand(true);
     url_entry.set_input_purpose(gtk4::InputPurpose::Url);
-    header.set_title_widget(Some(&url_entry));
+    url_box.append(&url_entry);
+    
+    // CSS for site info button styling
+    let css_provider = gtk4::CssProvider::new();
+    css_provider.load_from_data(r#"
+        .site-info-secure {
+            color: @success_color;
+        }
+        .site-info-insecure {
+            color: @warning_color;
+        }
+        .site-info-system {
+            color: @accent_color;
+        }
+    "#);
+    gtk4::style_context_add_provider_for_display(
+        &url_box.display(),
+        &css_provider,
+        gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
+    
+    header.set_title_widget(Some(&url_box));
 
     // Bookmark Button (Star)
     let bookmark_btn = Button::from_icon_name("starred-symbolic");
@@ -406,11 +475,22 @@ fn build_ui(app: &adw::Application) {
     let create_tab = {
         let tab_view = tab_view.clone();
         let url_entry = url_entry.clone();
+        let site_info_btn = site_info_btn.clone();
+        let connection_label = connection_label.clone();
+        let connection_desc = connection_desc.clone();
         let database = database.clone();
         Rc::new(move |url: Option<&str>| {
             let webview = WebView::new();
             webview.set_hexpand(true);
             webview.set_vexpand(true);
+            
+            // Set default font to Inter Variable (system-installed)
+            // Note: Bundled WOFF2 fonts can't be loaded via user stylesheets due to WebKit security
+            if let Some(settings) = webkit6::prelude::WebViewExt::settings(&webview) {
+                settings.set_default_font_family("Inter Variable");
+                settings.set_sans_serif_font_family("Inter Variable");
+                // Keep serif as system default for sites that use serif fonts
+            }
             
             let default_url = "foamium:newtab";
             let url_to_load = url.unwrap_or(default_url);
@@ -457,6 +537,9 @@ fn build_ui(app: &adw::Application) {
             
             // Update URL bar when URL changes and record history
             let url_entry = url_entry.clone();
+            let site_info_btn = site_info_btn.clone();
+            let connection_label = connection_label.clone();
+            let connection_desc = connection_desc.clone();
             let tab_view = tab_view.clone();
             let page_weak = page.downgrade();
             let database = database.clone();
@@ -482,16 +565,46 @@ fn build_ui(app: &adw::Application) {
                         // Only update URL bar if this is the currently selected tab
                         if let Some(page) = page_weak.upgrade() {
                             if tab_view.selected_page().as_ref() == Some(&page) {
-                                let display_uri = if uri.contains("/resources/pages/blank.html") {
+                                // Determine page type and display info
+                                let is_system_page = uri.contains("/resources/pages/") || uri.starts_with("foamium:");
+                                
+                                let display_text = if uri.contains("/resources/pages/blank.html") {
                                     "".to_string()
-                                } else if uri.contains("/resources/pages/error.html") {
-                                    "foamium:error".to_string()
-                                } else if uri.contains("/resources/pages/warning.html") {
-                                    "foamium:warning".to_string()
+                                } else if uri.contains("/resources/pages/error.html") || uri == "foamium:error" {
+                                    "Error".to_string()
+                                } else if uri.contains("/resources/pages/warning.html") || uri == "foamium:warning" {
+                                    "Warning".to_string()
+                                } else if uri == "foamium:history" {
+                                    "History".to_string()
+                                } else if uri == "foamium:bookmarks" {
+                                    "Bookmarks".to_string()
                                 } else {
                                     uri.to_string()
                                 };
-                                url_entry.set_text(&display_uri);
+                                
+                                url_entry.set_text(&display_text);
+                                
+                                // Update site info button and popover based on page type
+                                site_info_btn.remove_css_class("site-info-secure");
+                                site_info_btn.remove_css_class("site-info-insecure");
+                                site_info_btn.remove_css_class("site-info-system");
+                                
+                                if is_system_page {
+                                    site_info_btn.set_icon_name("dialog-information-symbolic");
+                                    site_info_btn.add_css_class("site-info-system");
+                                    connection_label.set_text("System Page");
+                                    connection_desc.set_text("This is a built-in Foamium page.");
+                                } else if uri.starts_with("https://") {
+                                    site_info_btn.set_icon_name("channel-secure-symbolic");
+                                    site_info_btn.add_css_class("site-info-secure");
+                                    connection_label.set_text("Connection: Secure");
+                                    connection_desc.set_text("Your connection to this site is encrypted.");
+                                } else {
+                                    site_info_btn.set_icon_name("channel-insecure-symbolic");
+                                    site_info_btn.add_css_class("site-info-insecure");
+                                    connection_label.set_text("Connection: Not Secure");
+                                    connection_desc.set_text("Your connection to this site is not encrypted. Sensitive information may be visible to others.");
+                                }
                             }
                         }
                     }
@@ -514,11 +627,64 @@ fn build_ui(app: &adw::Application) {
         view.close_page_finish(page, true);
         glib::Propagation::Proceed
     });
+    
+    // Cookie Manager Button Handler
+    let tab_view_cookie = tab_view.clone();
+    let site_info_popover_clone = site_info_popover.clone();
+    let window_cookie = window.clone();
+    cookie_btn.connect_clicked(move |_| {
+        // Close the popover
+        site_info_popover_clone.popdown();
+        
+        // Get current webview and clear cookies for the current domain
+        if let Some(page) = tab_view_cookie.selected_page() {
+            let child = page.child();
+            if let Some(webview) = child.downcast_ref::<WebView>() {
+                if let Some(uri) = webview.uri() {
+                    // Extract domain from URI
+                    if let Ok(parsed_url) = url::Url::parse(&uri) {
+                        if let Some(domain) = parsed_url.host_str() {
+                            // Show confirmation dialog
+                            let dialog = gtk4::AlertDialog::builder()
+                                .message(&format!("Clear data for {}", domain))
+                                .detail("This will clear all cookies, cache, and local storage for this site. You will be logged out.")
+                                .buttons(["Cancel", "Clear Data"])
+                                .cancel_button(0)
+                                .default_button(1)
+                                .build();
+                            
+                            let webview_clone = webview.clone();
+                            let window_ref = window_cookie.clone();
+                            dialog.choose(Some(&window_ref), None::<&gio::Cancellable>, move |response| {
+                                if let Ok(1) = response {
+                                    // Clear website data using network session
+                                    if let Some(session) = webview_clone.network_session() {
+                                        if let Some(data_manager) = session.website_data_manager() {
+                                            data_manager.clear(
+                                                webkit6::WebsiteDataTypes::ALL,
+                                                glib::TimeSpan::from_seconds(0),
+                                                None::<&gio::Cancellable>,
+                                                |result| {
+                                                    match result {
+                                                        Ok(_) => log::info!("Website data cleared successfully"),
+                                                        Err(e) => log::error!("Failed to clear website data: {}", e),
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    });
 
     // Bookmark Button Handler
     let tab_view_clone = tab_view.clone();
     let database_clone = database.clone();
-    let bookmark_btn_clone = bookmark_btn.clone();
     bookmark_btn.connect_clicked(move |btn| {
         if let Some(page) = tab_view_clone.selected_page() {
             let child = page.child();
@@ -627,8 +793,11 @@ fn build_ui(app: &adw::Application) {
         }
     });
 
-    // Update URL bar and bookmark button when switching tabs
+    // Update URL bar, site info, and bookmark button when switching tabs
     let url_entry_clone = url_entry.clone();
+    let site_info_btn_clone = site_info_btn.clone();
+    let connection_label_clone = connection_label.clone();
+    let connection_desc_clone = connection_desc.clone();
     let bookmark_btn_clone = bookmark_btn.clone();
     let database_clone = database.clone();
     tab_view.connect_selected_page_notify(move |view| {
@@ -636,23 +805,49 @@ fn build_ui(app: &adw::Application) {
             let child = page.child();
             if let Some(webview) = child.downcast_ref::<WebView>() {
                 if let Some(uri) = webview.uri() {
-                    // Convert file:// URIs back to foamium: scheme for display
-                    let display_uri = if uri.contains("/resources/pages/blank.html") {
+                    // Determine page type and display info
+                    let is_system_page = uri.contains("/resources/pages/") || uri.starts_with("foamium:");
+                    
+                    let display_text = if uri.contains("/resources/pages/blank.html") {
                         "".to_string()
-                    } else if uri.contains("/resources/pages/error.html") {
-                        "foamium:error".to_string()
-                    } else if uri.contains("/resources/pages/warning.html") {
-                        "foamium:warning".to_string()
-                    } else if uri == "foamium:history" || uri == "foamium:bookmarks" {
-                        uri.to_string()
+                    } else if uri.contains("/resources/pages/error.html") || uri == "foamium:error" {
+                        "Error".to_string()
+                    } else if uri.contains("/resources/pages/warning.html") || uri == "foamium:warning" {
+                        "Warning".to_string()
+                    } else if uri == "foamium:history" {
+                        "History".to_string()
+                    } else if uri == "foamium:bookmarks" {
+                        "Bookmarks".to_string()
                     } else {
                         uri.to_string()
                     };
-                    url_entry_clone.set_text(&display_uri);
+                    
+                    url_entry_clone.set_text(&display_text);
+                    
+                    // Update site info button and popover based on page type
+                    site_info_btn_clone.remove_css_class("site-info-secure");
+                    site_info_btn_clone.remove_css_class("site-info-insecure");
+                    site_info_btn_clone.remove_css_class("site-info-system");
+                    
+                    if is_system_page {
+                        site_info_btn_clone.set_icon_name("dialog-information-symbolic");
+                        site_info_btn_clone.add_css_class("site-info-system");
+                        connection_label_clone.set_text("System Page");
+                        connection_desc_clone.set_text("This is a built-in Foamium page.");
+                    } else if uri.starts_with("https://") {
+                        site_info_btn_clone.set_icon_name("channel-secure-symbolic");
+                        site_info_btn_clone.add_css_class("site-info-secure");
+                        connection_label_clone.set_text("Connection: Secure");
+                        connection_desc_clone.set_text("Your connection to this site is encrypted.");
+                    } else {
+                        site_info_btn_clone.set_icon_name("channel-insecure-symbolic");
+                        site_info_btn_clone.add_css_class("site-info-insecure");
+                        connection_label_clone.set_text("Connection: Not Secure");
+                        connection_desc_clone.set_text("Your connection to this site is not encrypted.");
+                    }
                     
                     // Update bookmark button icon
-                    let is_internal = uri.contains("/resources/pages/") || uri.starts_with("foamium:");
-                    if is_internal {
+                    if is_system_page {
                         bookmark_btn_clone.set_icon_name("non-starred-symbolic");
                     } else {
                         let is_bookmarked = database_clone.is_bookmarked(&uri).unwrap_or(false);
@@ -664,6 +859,9 @@ fn build_ui(app: &adw::Application) {
                     }
                 } else {
                     url_entry_clone.set_text("");
+                    site_info_btn_clone.set_icon_name("dialog-information-symbolic");
+                    connection_label_clone.set_text("Site Information");
+                    connection_desc_clone.set_text("");
                     bookmark_btn_clone.set_icon_name("non-starred-symbolic");
                 }
             }

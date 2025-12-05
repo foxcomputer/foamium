@@ -7,6 +7,7 @@ pub struct Database {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct HistoryEntry {
     pub id: i64,
     pub url: String,
@@ -15,6 +16,7 @@ pub struct HistoryEntry {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BookmarkEntry {
     pub id: i64,
     pub url: String,

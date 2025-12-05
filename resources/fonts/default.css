@@ -1,0 +1,20 @@
+/* Foamium Default Font Injection
+   This stylesheet makes the bundled Inter font available as the default
+   sans-serif fallback for websites that don't specify their own fonts. */
+
+/* Inter Variable Font (full range) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("Inter/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("Inter/InterVariable-Italic.woff2") format("woff2");
+}

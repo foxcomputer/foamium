@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "foamium_app",
+    "foamium_installer",
     "foamium_net",
     "foamium_dom",
     "foamium_css",
