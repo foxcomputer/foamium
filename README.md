@@ -1,3 +1,6 @@
+# DEVELOPMENT CURRENTLY PAUSED
+> Both of us have exams going on at school (@felixstt) and college (@sussy-developer) thus development is paused for now. A new project is being worked on as well so this might be paused till that one is finished!
+
 # Foamium Browser
 
 A fast, lightweight, and native web browser for Linux built with Rust.
